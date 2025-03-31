@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assignment Solver</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh; /* Allow body to grow beyond viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding: 2rem; /* Add padding for better spacing */
+        }
+        /* Glassmorphism Card */
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #d4d4d4;
+        }
+
+        /* Input Fields */
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus {
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Buttons */
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Paragraphs */
+        p {
+            margin: 1rem 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #242121;
+        }
+
+        /* Response Styling */
+        #response {
+            min-height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            color: #242121;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Assignment Solver</h1>
+
+        <!-- File Upload -->
+        <h2>Upload a File</h2>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" />
+            <button type="button" onclick="uploadFile()">Upload</button>
+        </form>
+        <p id="fileContent">No file uploaded.</p>
+
+        <!-- Ask Question -->
+        <h2>Ask a Question</h2>
+        <input type="text" id="questionInput" placeholder="Enter your question here" />
+        <button onclick="askQuestion()">Submit</button>
+        <p id="response">Answer will appear here.</p>
+    </div>
+
+    <script>
+        let fileContent = ""; // Store the content of the uploaded file
+
+        // Function to upload a file
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/upload/", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+                fileContent = result.content; // Save the file content
+                document.getElementById("fileContent").innerText = `File Content: ${fileContent}`;
+            } catch (error) {
+                alert("Error uploading file: " + error.message);
+            }
+        }
+
+        // Function to ask a question using Puter.js
+        async function askQuestion() {
+            const question = document.getElementById("questionInput").value;
+            if (!question) {
+                alert("Please enter a question.");
+                return;
+            }
+
+            // Combine the question with the file content
+            const fullPrompt = fileContent
+                ? `Question: ${question}\nAdditional Context: ${fileContent}`
+                : question;
+
+            try {
+                puter.print("Loading...");
+                const response = await puter.ai.chat(fullPrompt);
+                document.getElementById("response").innerText = `Answer: ${response}`;
+            } catch (error) {
+                alert("Error asking question: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
